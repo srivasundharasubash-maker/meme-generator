@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemeForge - Create Viral Memes in Seconds</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* CSS Variables for Light/Dark Mode */
+        :root {
+            --primary: #6C63FF;
+            --secondary: #FF6584;
+            --bg-body: #f4f7f6;
+            --bg-card: #ffffff;
+            --text-main: #2d3436;
+            --text-muted: #636e72;
+            --shadow: 0 10px 30px rgba(0,0,0,0.1);
+            --border-radius: 16px;
+            --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        [data-theme="dark"] {
+            --primary: #8c85ff;
+            --secondary: #ff8fa3;
+            --bg-body: #121212;
+            --bg-card: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; transition: background 0.3s, color 0.3s; }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* Navbar */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 5%;
+            background: var(--bg-card);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: var(--gradient-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .nav-links { display: flex; gap: 2rem; list-style: none; align-items: center; }
+        .nav-links a { text-decoration: none; color: var(--text-main); font-weight: 500; }
+        .nav-links a:hover { color: var(--primary); }
+
+        .theme-toggle {
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0.5rem;
+            border-radius: 50%;
+            background: var(--bg-body);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 5rem 1rem;
+            background: var(--gradient-hero);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero h1 { font-size: 3.5rem; margin-bottom: 1rem; line-height: 1.1; }
+        .hero p { font-size: 1.2rem; opacity: 0.9; margin-bottom: 2rem; }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary { background: var(--secondary); color: white; box-shadow: 0 4px 15px rgba(255, 101, 132, 0.4); }
+        .btn-primary:hover { transform: translateY(-3px); }
+        .btn-outline { border: 2px solid white; background: transparent; color: white; margin-left: 1rem; }
+
+        /* Container */
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+
+        /* Sections */
+        .section-title { text-align: center; margin-bottom: 3rem; }
+        .section-title h2 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .section-title p { color: var(--text-muted); }
+
+        /* Template Gallery */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .template-card {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .template-card:hover { transform: translateY(-10px); }
+        .template-card img { width: 100%; height: 200px; object-fit: cover; }
+        .template-card .info { padding: 1rem; }
+        .template-card h3 { font-size: 1rem; margin-bottom: 0.2rem; }
+
+        /* Meme Editor */
+        .editor-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 4rem;
+        }
+
+        .canvas-wrapper {
+            background: #eee;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 500px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        canvas {
+            max-width: 100%;
+            max-height: 600px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            cursor: text;
+        }
+
+        .controls { display: flex; flex-direction: column; gap: 1.5rem; }
+
+        .control-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+        .control-group input[type="text"], .control-group input[type="number"], .control-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: var(--bg-body);
+            color: var(--text-main);
+        }
+
+        .file-upload {
+            border: 2px dashed var(--primary);
+            padding: 2rem;
+            text-align: center;
+            border-radius: 12px;
+            cursor: pointer;
+            background: var(--bg-body);
+        }
+
+        .filter-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            background: var(--bg-card);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* Trending */
+        .trending-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        .trending-card {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+        .trending-card img { width: 100%; }
+        .trending-card .actions { padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .social-icons i { margin-right: 1rem; cursor: pointer; color: var(--text-muted); font-size: 1.2rem; }
+        .social-icons i:hover { color: var(--primary); }
+
+        /* Footer */
+        footer {
+            background: var(--bg-card);
+            padding: 3rem 1rem;
+            text-align: center;
+            margin-top: 4rem;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+        .social-links { margin-bottom: 1rem; }
+        .social-links a { margin: 0 10px; color: var(--text-main); font-size: 1.5rem; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .editor-container { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 2.5rem; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav>
+        <div class="logo"><i class="fas fa-fire"></i> MemeForge</div>
+        <ul class="nav-links">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#templates">Templates</a></li>
+            <li><a href="#editor">Create</a></li>
+            <li><a href="#trending">Trending</a></li>
+        </ul>
+        <div class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero" id="hero">
+        <h1>Create Viral Memes in Seconds</h1>
+        <p>Professional meme generator with real-time editing, drag & drop, and HD download.</p>
+        <div>
+            <a href="#editor" class="btn btn-primary">Start Creating <i class="fas fa-arrow-right"></i></a>
+            <a href="#templates" class="btn btn-outline">Browse Templates</a>
+        </div>
+    </section>
+
+    <div class="container">
+
+        <!-- Template Gallery -->
+        <section id="templates">
+            <div class="section-title">
+                <h2>Popular Templates</h2>
+                <p>Start with a classic format and make it your own.</p>
+            </div>
+            <div class="gallery-grid" id="templateGrid">
+                <!-- Injected by JS -->
+            </div>
+        </section>
+
+        <!-- Meme Editor -->
+        <section id="editor">
+            <div class="section-title">
+                <h2>Meme Studio</h2>
+                <p>Upload an image, add text, and download your creation.</p>
+            </div>
+            <div class="editor-container">
+                <div class="canvas-wrapper">
+                    <canvas id="memeCanvas" width="600" height="600"></canvas>
+                </div>
+                <div class="controls">
+                    <div class="control-group">
+                        <label>Upload Image</label>
+                        <div class="file-upload" id="dropZone">
+                            <i class="fas fa-cloud-upload-alt fa-2x"></i><br>
+                            <span>Click or Drag Image Here</span>
+                            <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Top Text</label>
+                        <input type="text" id="topText" placeholder="Enter top text...">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Bottom Text</label>
+                        <input type="text" id="bottomText" placeholder="Enter bottom text...">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Font Size</label>
+                        <input type="range" id="fontSize" min="20" max="80" value="40" style="width:100%">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Text Color</label>
+                        <input type="color" id="textColor" value="#ffffff" style="width:100%; height:40px;">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Filters</label>
+                        <div class="filter-row">
+                            <button class="filter-btn active" onclick="applyFilter('none')">None</button>
+                            <button class="filter-btn" onclick="applyFilter('grayscale(100%)')">B&W</button>
+                            <button class="filter-btn" onclick="applyFilter('sepia(100%)')">Sepia</button>
+                            <button class="filter-btn" onclick="applyFilter('hue-rotate(90deg)')">Neon</button>
+                            <button class="filter-btn" onclick="applyFilter('blur(2px)')">Blur</button>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="downloadMeme()" style="width:100%">
+                        <i class="fas fa-download"></i> Download HD
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trending Memes -->
+        <section id="trending">
+            <div class="section-title">
+                <h2>Trending Memes</h2>
+                <p>See what the community is creating right now.</p>
+            </div>
+            <div class="trending-grid" id="trendingGrid">
+                <!-- Injected by JS -->
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="social-links">
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-reddit"></i></a>
+        </div>
+        <p>&copy; 2026 MemeForge. All rights reserved. Made with <i class="fas fa-heart" style="color:red"></i> and Memes.</p>
+    </footer>
+
+    <script>
+        // --- State Management ---
+        const state = {
+            image: null,
+            topText: "WHEN YOU REALIZE",
+            bottomText: "IT'S FRIDAY",
+            fontSize: 40,
+            textColor: "#ffffff",
+            filter: "none",
+            textOffsetTop: 50,
+            textOffsetBottom: 50,
+            dragging: false,
+            dragTarget: null // 'top' or 'bottom'
+        };
+
+        // --- DOM Elements ---
+        const canvas = document.getElementById('memeCanvas');
+        const ctx = canvas.getContext('2d');
+        const themeToggle = document.getElementById('themeToggle');
+        const imageUpload = document.getElementById('imageUpload');
+        const dropZone = document.getElementById('dropZone');
+        const templateGrid = document.getElementById('templateGrid');
+        const trendingGrid = document.getElementById('trendingGrid');
+
+        // --- Initialization ---
+        function init() {
+            renderTemplates();
+            renderTrending();
+            loadImageFromUrl("https://images.unsplash.com/photo-1531259683007-016a7b628fc3?auto=format&fit=crop&w=600&q=80"); // Default Doge Image
+            
+            // Event Listeners
+            document.getElementById('topText').addEventListener('input', (e) => { state.topText = e.target.value; draw(); });
+            document.getElementById('bottomText').addEventListener('input', (e) => { state.bottomText = e.target.value; draw(); });
+            document.getElementById('fontSize').addEventListener('input', (e) => { state.fontSize = parseInt(e.target.value); draw(); });
+            document.getElementById('textColor').addEventListener('input', (e) => { state.textColor = e.target.value; draw(); });
+            
+            // Canvas Mouse Events for Dragging
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('mouseout', handleMouseUp);
+        }
+
+        // --- Canvas Drawing Logic ---
+        function draw() {
+            // Clear
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw Image
+            if (state.image) {
+                ctx.filter = state.filter;
+                ctx.drawImage(state.image, 0, 0, canvas.width, canvas.height);
+                ctx.filter = "none";
+            }
+
+            // Draw Text
+            ctx.font = `900 ${state.fontSize}px Arial`;
+            ctx.fillStyle = state.textColor;
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = Math.max(2, state.fontSize / 10);
+            ctx.textAlign = "center";
+
+            // Top Text
+            if (state.topText) {
+                ctx.fillText(state.topText.toUpperCase(), canvas.width / 2, state.textOffsetTop + state.fontSize);
+                ctx.strokeText(state.topText.toUpperCase(), canvas.width / 2, state.textOffsetTop + state.fontSize);
+            }
+
+            // Bottom Text
+            if (state.bottomText) {
+                ctx.fillText(state.bottomText.toUpperCase(), canvas.width / 2, canvas.height - state.textOffsetBottom);
+                ctx.strokeText(state.bottomText.toUpperCase(), canvas.width / 2, canvas.height - state.textOffsetBottom);
+            }
+        }
+
+        // --- Dragging Text Logic ---
+        function handleMouseDown(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+            // Check if click is near top text
+            if (Math.abs(y - (state.textOffsetTop + state.fontSize)) < state.fontSize) {
+                state.dragging = true;
+                state.dragTarget = 'top';
+            } 
+            // Check if click is near bottom text
+            else if (Math.abs(y - (canvas.height - state.textOffsetBottom)) < state.fontSize) {
+                state.dragging = true;
+                state.dragTarget = 'bottom';
+            }
+        }
+
+        function handleMouseMove(e) {
+            if (!state.dragging) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+            if (state.dragTarget === 'top') {
+                state.textOffsetTop = y - state.fontSize;
+            } else {
+                state.textOffsetBottom = canvas.height - y;
+            }
+            draw();
+        }
+
+        function handleMouseUp() {
+            state.dragging = false;
+            state.dragTarget = null;
+        }
+
+        // --- Image Handling ---
+        function loadImageFromUrl(url) {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.onload = () => {
+                state.image = img;
+                canvas.width = img.width;
+                canvas.height = img.height;
+                draw();
+            };
+            img.src = url;
+        }
+
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                loadImageFromUrl(event.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        imageUpload.addEventListener('change', handleFileUpload);
+        dropZone.addEventListener('click', () => imageUpload.click());
+
+        // --- Filters ---
+        window.applyFilter = function(filter) {
+            state.filter = filter;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            draw();
+        };
+
+        // --- Download ---
+        window.downloadMeme = function() {
+            const link = document.createElement('a');
+            link.download = 'memeforge-meme.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        };
+
+        // --- Theme Toggle ---
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            themeToggle.innerHTML = isDark ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+        });
+
+        // --- Rendering Sections ---
+        function renderTemplates() {
+            const templates = [
+                { name: "Distracted Boyfriend", url: "https://i.imgflip.com/1bij.jpg" },
+                { name: "Drake Hotline", url: "https://i.imgflip.com/30b1gx.jpg" },
+                { name: "Change My Mind", url: "https://i.imgflip.com/24y43o.jpg" },
+                { name: "Two Buttons", url: "https://i.imgflip.com/1g8my4.jpg" },
+                { name: "Woman Yelling", url: "https://i.imgflip.com/2fm6x.jpg" },
+                { name: "Is This A Pigeon", url: "https://i.imgflip.com/19vz5u.jpg" },
+                { name: "Disaster Girl", url: "https://i.imgflip.com/23ls.jpg" },
+                { name: "Success Kid", url: "https://i.imgflip.com/1bhk.jpg" },
+            ];
+
+            templates.forEach(t => {
+                const card = document.createElement('div');
+                card.className = 'template-card';
+                card.innerHTML = `
+                    <img src="${t.url}" alt="${t.name}">
+                    <div class="info">
+                        <h3>${t.name}</h3>
+                        <p style="color:var(--text-muted); font-size:0.9rem">Click to use</p>
+                    </div>
+                `;
+                card.addEventListener('click', () => {
+                    loadImageFromUrl(t.url);
+                    document.getElementById('editor').scrollIntoView({ behavior: 'smooth' });
+                });
+                templateGrid.appendChild(card);
+            });
+        }
+
+        function renderTrending() {
+            const trending = [
+                { user: "@mememaster", likes: "12.4k" },
+                { user: "@funnybone", likes: "8.2k" },
+                { user: "@codehumor", likes: "24.1k" },
+            ];
+            
+            // Reusing templates for demo purposes
+            const templates = [
+                "https://i.imgflip.com/1bij.jpg",
+                "https://i.imgflip.com/30b1gx.jpg",
+                "https://i.imgflip.com/24y43o.jpg"
+            ];
+
+            trending.forEach((t, index) => {
+                const card = document.createElement('div');
+                card.className = 'trending-card';
+                card.innerHTML = `
+                    <img src="${templates[index]}" alt="Trending">
+                    <div class="actions">
+                        <div>
+                            <strong>${t.user}</strong><br>
+                            <span style="color:var(--text-muted); font-size:0.8rem"><i class="fas fa-heart" style="color:red"></i> ${t.likes} likes</span>
+                        </div>
+                        <div class="social-icons">
+                            <i class="fab fa-twitter"></i>
+                            <i class="fab fa-facebook"></i>
+                            <i class="fas fa-share"></i>
+                        </div>
+                    </div>
+                `;
+                trendingGrid.appendChild(card);
+            });
+        }
+
+        // Run
+        init();
+
+    </script>
+</body>
+</html>
